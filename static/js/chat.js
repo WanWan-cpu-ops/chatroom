@@ -93,11 +93,21 @@ function addMessage(data) {
             <div class="message-text">${escapeHtml(data.message)}</div>
     `;
     
-    // 如果是电影类型，添加简单的视频播放器
-    if (data.type === 'movie' && data.url) {
+    // 如果是电影类型，添加iframe视频播放器
+    if (data.type === 'movie' && data.parsed_url) {
         messageHTML += `
             <div class="movie-preview">
-                <a href="${escapeHtml(data.url)}" target="_blank">点击观看电影</a>
+                <iframe 
+                    src="${escapeHtml(data.parsed_url)}" 
+                    width="400" 
+                    height="400" 
+                    frameborder="0" 
+                    allowfullscreen 
+                    title="电影播放器">
+                </iframe>
+                <div class="movie-url">
+                    原始链接: <a href="${escapeHtml(data.url)}" target="_blank">${escapeHtml(data.url)}</a>
+                </div>
             </div>
         `;
     }
@@ -194,54 +204,24 @@ function initEmojiPicker() {
     // 点击emoji添加到输入框 - 修改后的处理逻辑
     const emojiGrid = emojiPicker.querySelector('.emoji-grid');
     emojiGrid.addEventListener('click', function(e) {
-        // 获取点击位置的单个emoji字符
-        const textNode = emojiGrid.firstChild;
-        if (textNode && textNode.nodeType === 3) {
-            // 创建一个临时的span来辅助计算字符位置
-            const tempSpan = document.createElement('span');
-            tempSpan.style.position = 'absolute';
-            tempSpan.style.visibility = 'hidden';
-            tempSpan.style.font = window.getComputedStyle(emojiGrid).font;
-            tempSpan.style.fontSize = window.getComputedStyle(emojiGrid).fontSize;
-            tempSpan.style.letterSpacing = '0.2em'; // 假设emoji之间有间距
-            document.body.appendChild(tempSpan);
+        // 确保点击的是emoji span元素
+        if (e.target.tagName === 'SPAN') {
+            const emoji = e.target.textContent;
             
-            // 获取所有emoji字符
-            const emojiText = textNode.textContent;
-            const emojiChars = emojiText.match(/[\u{1F000}-\u{1F9FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/gu) || [];
+            // 获取当前光标位置
+            const startPos = messageInput.selectionStart;
+            const endPos = messageInput.selectionEnd;
+            const currentValue = messageInput.value;
             
-            // 获取emojiGrid的位置
-            const rect = emojiGrid.getBoundingClientRect();
-            const clickX = e.clientX - rect.left;
+            // 在光标位置插入emoji
+            messageInput.value = currentValue.substring(0, startPos) + emoji + currentValue.substring(endPos);
             
-            // 计算点击的是哪个emoji（假设每个emoji宽度大致相等）
-            const emojiSize = rect.width / Math.ceil(emojiChars.length / 9); // 基于9列布局
-            const emojiIndex = Math.floor(clickX / emojiSize);
+            // 移动光标到emoji后面
+            const newPos = startPos + emoji.length;
+            messageInput.setSelectionRange(newPos, newPos);
             
-            // 确保索引在有效范围内
-            if (emojiIndex >= 0 && emojiIndex < emojiChars.length) {
-                const emoji = emojiChars[emojiIndex];
-                
-                if (emoji) {
-                    // 获取当前光标位置
-                    const startPos = messageInput.selectionStart;
-                    const endPos = messageInput.selectionEnd;
-                    const currentValue = messageInput.value;
-                    
-                    // 在光标位置插入emoji
-                    messageInput.value = currentValue.substring(0, startPos) + emoji + currentValue.substring(endPos);
-                    
-                    // 移动光标到emoji后面
-                    const newPos = startPos + emoji.length;
-                    messageInput.setSelectionRange(newPos, newPos);
-                    
-                    messageInput.focus();
-                    emojiPicker.classList.remove('show');
-                }
-            }
-            
-            // 清理临时元素
-            document.body.removeChild(tempSpan);
+            messageInput.focus();
+            emojiPicker.classList.remove('show');
         }
     });
     

@@ -379,6 +379,40 @@ body {
     word-break: break-word;
 }
 
+/* 电影预览样式 */
+.movie-preview {
+    margin-top: 10px;
+    padding: 10px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.movie-preview iframe {
+    border: 1px solid #e1e5e9;
+    border-radius: 4px;
+    transition: transform 0.2s;
+}
+
+.movie-preview iframe:hover {
+    transform: scale(1.01);
+}
+
+.movie-url {
+    margin-top: 8px;
+    font-size: 12px;
+    color: #666;
+}
+
+.movie-url a {
+    color: #667eea;
+    text-decoration: none;
+}
+
+.movie-url a:hover {
+    text-decoration: underline;
+}
+
 .message.mention .message-text {
     color: #e74c3c;
 }
@@ -457,7 +491,8 @@ body {
     padding: 10px;
     display: none;
     max-width: 280px;
-    overflow: hidden;
+    max-height: 300px;
+    overflow-y: auto;
 }
 
 .emoji-picker.show {

@@ -2,6 +2,7 @@ from flask import Flask, render_template, request, redirect, url_for
 from flask_socketio import SocketIO, emit, join_room, leave_room
 import json
 import os
+import random
 from datetime import datetime
 
 app = Flask(__name__)
@@ -16,6 +17,14 @@ nickname_to_socket = {}
 with open('config.json', 'r', encoding='utf-8') as f:
     config = json.load(f)
     SERVERS = config.get('servers', ["http://localhost:5000"])
+
+# 加载AI回复数据
+try:
+    with open('ai_responses.json', 'r', encoding='utf-8') as f:
+        ai_responses = json.load(f)
+except Exception as e:
+    print(f"加载AI回复数据失败: {e}")
+    ai_responses = {"川小农": {"default": ["抱歉，我暂时无法回答问题。"]}}
 
 @app.route('/')
 def index():
@@ -97,6 +106,37 @@ def handle_message(data):
             'type': 'normal'
         }, broadcast=True)
 
+# 根据用户问题获取AI回复
+def get_ai_response(user_message, username):
+    message = user_message.lower()
+    responses = ai_responses.get("川小农", {"default": ["抱歉，我暂时无法回答问题。"]})
+    
+    # 根据关键词匹配回复类型
+    if any(word in message for word in ['你好', '嗨', '哈喽', 'hi', 'hello']):
+        response_type = 'greeting'
+    elif any(word in message for word in ['谁', '身份', '是']):
+        response_type = 'identity'
+    elif any(word in message for word in ['能', '可以', '功能', '做什么']):
+        response_type = 'capability'
+    elif any(word in message for word in ['名字', '叫什么']):
+        response_type = 'name'
+    elif any(word in message for word in ['谢谢', '感谢', 'thx']):
+        response_type = 'thanks'
+    elif any(word in message for word in ['再见', '拜拜', 'bye']):
+        response_type = 'goodbye'
+    else:
+        response_type = 'default'
+    
+    # 随机选择一个回复
+    available_responses = responses.get(response_type, responses.get('default', ["抱歉，我暂时无法回答问题。"]))
+    selected_response = random.choice(available_responses)
+    
+    # 个性化回复，插入用户名
+    if '{username}' in selected_response:
+        selected_response = selected_response.format(username=username)
+    
+    return selected_response
+
 # 处理@指令
 def handle_at_command(username, message):
     parts = message.split(' ', 1)
@@ -105,12 +145,15 @@ def handle_at_command(username, message):
     # @电影 命令
     if command == '@电影' and len(parts) > 1:
         url = parts[1]
+        # 使用解析地址包装电影URL
+        parsed_url = f"https://jx.playerjy.com/?url={url}"
         emit('receive_message', {
             'username': username,
             'message': f'分享了电影链接: {url}',
             'timestamp': datetime.now().strftime('%H:%M:%S'),
             'type': 'movie',
-            'url': url
+            'url': url,
+            'parsed_url': parsed_url
         }, broadcast=True)
     
     # @川小农 命令
@@ -122,8 +165,9 @@ def handle_at_command(username, message):
             'timestamp': datetime.now().strftime('%H:%M:%S'),
             'type': 'ai'
         }, broadcast=True)
-        # 简单的AI回复模拟
-        ai_response = f'您好{username}，这是AI助手川小农的模拟回复。'
+        
+        # 获取智能回复
+        ai_response = get_ai_response(content, username)
         emit('receive_message', {
             'username': '川小农',
             'message': ai_response,
