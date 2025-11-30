@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DaiP智能聊天室 - 登录</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body class="login-body">
+    <div class="login-container">
+        <div class="login-header">
+            <h1>DaiP智能聊天室</h1>
+            <p>请输入昵称并选择服务器加入聊天</p>
+        </div>
+        
+        <form id="login-form" action="{{ url_for('chat') }}" method="get">
+            <div class="form-group">
+                <label for="username">昵称</label>
+                <input type="text" id="username" name="username" placeholder="请输入您的昵称" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="server">服务器地址</label>
+                <select id="server" name="server" required>
+                    {% for server in servers %}
+                    <option value="{{ server }}">{{ server }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <button type="submit" id="login-btn">登录</button>
+        </form>
+        
+        <div id="error-message" class="error-message"></div>
+    </div>
+    
+    <script>
+        document.getElementById('login-form').addEventListener('submit', function(e) {
+            const username = document.getElementById('username').value.trim();
+            if (!username) {
+                e.preventDefault();
+                document.getElementById('error-message').textContent = '昵称不能为空';
+                return;
+            }
+            
+            // 检查昵称是否有效（只允许字母、数字、中文和常见符号）
+            if (!/^[\u4e00-\u9fa5a-zA-Z0-9_\-\.\u200B]{2,20}$/.test(username)) {
+                e.preventDefault();
+                document.getElementById('error-message').textContent = '昵称长度2-20个字符，只允许字母、数字、中文和下划线';
+                return;
+            }
+            
+            // 清除错误信息
+            document.getElementById('error-message').textContent = '';
+        });
+    </script>
+</body>
+</html>

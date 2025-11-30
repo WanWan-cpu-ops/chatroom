@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DaiP智能聊天室</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="chat-body">
+    <div class="chat-container">
+        <!-- 左侧侧边栏 -->
+        <div class="sidebar">
+            <div class="user-info">
+                <div class="avatar">
+                    <span>{{ username[0] }}</span>
+                </div>
+                <div class="user-details">
+                    <h3>{{ username }}</h3>
+                    <span class="status online">在线</span>
+                </div>
+            </div>
+            
+            <div class="sidebar-nav">
+                <ul>
+                    <li class="active">
+                        <i class="fas fa-comment"></i>
+                        <span>聊天</span>
+                    </li>
+                    <li>
+                        <i class="fas fa-users"></i>
+                        <span>在线用户</span>
+                    </li>
+                </ul>
+            </div>
+            
+            <div class="online-users">
+                <h4>在线用户 (0)</h4>
+                <ul id="users-list">
+                    <!-- 在线用户列表将通过JavaScript动态添加 -->
+                </ul>
+            </div>
+            
+            <button id="logout-btn" class="logout-btn">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>退出登录</span>
+            </button>
+        </div>
+        
+        <!-- 主聊天区域 -->
+        <div class="chat-main">
+            <div class="chat-header">
+                <h2>DaiP智能聊天室</h2>
+                <div class="header-actions">
+                    <span id="room-status" class="status-indicator">
+                        <span class="dot online"></span>
+                        房间在线
+                    </span>
+                </div>
+            </div>
+            
+            <div class="chat-messages" id="chat-messages">
+                <!-- 欢迎消息 -->
+                <div class="system-message">
+                    <p>欢迎来到 DaiP智能聊天室！</p>
+                    <p>使用提示：</p>
+                    <ul>
+                        <li>输入消息发送文本内容</li>
+                        <li>使用 @昵称 可以提及特定用户</li>
+                        <li>使用 @电影 url 可以分享电影链接</li>
+                        <li>使用 @川小农 可以与AI助手对话</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="chat-input-container">
+                <div class="input-actions">
+                    <button id="emoji-btn" class="action-btn" title="表情">
+                        <i class="far fa-smile"></i>
+                    </button>
+                    <button id="help-btn" class="action-btn" title="帮助">
+                        <i class="far fa-question-circle"></i>
+                    </button>
+                </div>
+                <input type="text" id="message-input" placeholder="输入消息..." autocomplete="off">
+                <button id="send-btn" class="send-btn" title="发送">
+                    <i class="fas fa-paper-plane"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Emoji选择器 -->
+    <div class="emoji-picker" id="emoji-picker">
+        <div class="emoji-grid">
+            <!-- 常用emoji -->
+            😀 😃 😄 😁 😆 😅 😂 🤣 😊 😇 🙂 🙃 😉 😌 😍 🥰 😘 😗 😙 😚 😋 😛 😝 😜 🤪 🤨 😐 😑 😶 🙄 😏 😣 😥 😮 🤐 😯 😪 😫 😴 😌 😛 😜 🤪 🤨 😐 😑 😶 🙄 😏 😣 😥 😮 🤐 😯 😪 😫 😴 😌
+        </div>
+    </div>
+    
+    <!-- 帮助弹窗 -->
+    <div class="modal" id="help-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>使用帮助</h3>
+                <button id="close-help" class="close-btn">×</button>
+            </div>
+            <div class="modal-body">
+                <h4>基本功能</h4>
+                <ul>
+                    <li>在输入框中输入文字并按Enter或点击发送按钮发送消息</li>
+                    <li>点击表情按钮选择emoji表情</li>
+                    <li>点击用户头像可以查看用户信息</li>
+                </ul>
+                
+                <h4>特殊指令</h4>
+                <ul>
+                    <li><strong>@昵称</strong>: 提及特定用户，如 @张三 你好</li>
+                    <li><strong>@电影</strong>: 分享电影链接，如 @电影 https://example.com/movie.mp4</li>
+                    <li><strong>@川小农</strong>: 与AI助手对话，如 @川小农 今天天气怎么样</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+    <script src="{{ url_for('static', filename='js/chat.js') }}"></script>
+</body>
+</html>
