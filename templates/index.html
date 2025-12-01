@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DaiP 智能聊天室</title>
+    <link rel="stylesheet" href="/static/css/style.css?v=2.1">
+    <link rel="stylesheet" href="/static/css/scrollbar.css?v=2.1">
+</head>
+<body>
+    <!-- Login Screen -->
+    <div id="login-screen" class="screen active">
+        <div class="login-bg-decoration"></div>
+        <div class="login-card">
+            <div class="logo-area">
+                <h1>DaiP</h1>
+                <p>带派AI聊天室</p>
+            </div>
+            <div class="form-group">
+                <label>用户名</label>
+                <input type="text" id="username-input" placeholder="请输入您的用户名" maxlength="15">
+            </div>
+            <div class="form-group">
+                <label>密码</label>
+                <input type="password" id="password-input" placeholder="请输入您的密码">
+            </div>
+            <div class="form-group">
+                <label>服务器</label>
+                <div class="select-wrapper">
+                    <select id="server-select">
+                        <option value="" disabled selected>加载中...</option>
+                    </select>
+                    <button id="refresh-server-btn" class="icon-btn" title="刷新服务器列表">
+                        <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="23 4 23 10 17 10"></polyline>
+                            <polyline points="1 20 1 14 7 14"></polyline>
+                            <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            <button id="login-btn">登录</button>
+            <p id="login-error" class="error-msg"></p>
+            <div class="auth-switch">
+                <span>还没有账号？</span>
+                <button id="switch-to-register" class="switch-btn">立即注册</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Register Screen -->
+    <div id="register-screen" class="screen">
+        <div class="login-bg-decoration"></div>
+        <div class="login-card">
+            <div class="logo-area">
+                <h1>DaiP</h1>
+                <p>带派AI聊天室</p>
+            </div>
+            <div class="form-group">
+                <label>用户名</label>
+                <input type="text" id="register-username-input" placeholder="请输入您的用户名" maxlength="15">
+            </div>
+            <div class="form-group">
+                <label>密码</label>
+                <input type="password" id="register-password-input" placeholder="请输入您的密码">
+            </div>
+            <div class="form-group">
+                <label>确认密码</label>
+                <input type="password" id="register-confirm-password-input" placeholder="请再次输入您的密码">
+            </div>
+            <button id="register-btn">注册</button>
+            <p id="register-error" class="error-msg"></p>
+            <div class="auth-switch">
+                <span>已有账号？</span>
+                <button id="switch-to-login" class="switch-btn">立即登录</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Chat Screen -->
+    <div id="chat-screen" class="screen">
+        <div class="container">
+            <!-- Sidebar -->
+            <div class="sidebar">
+                <div class="sidebar-header">
+                    <div class="avatar-circle" id="my-avatar"></div>
+                    <div class="user-info">
+                        <h3 id="my-nickname">User</h3>
+                        <span class="status-dot online"></span> 在线
+                    </div>
+                </div>
+                
+                <div class="sidebar-section">
+                    <h4>在线用户 (<span id="user-count">0</span>)</h4>
+                    <div class="user-list" id="online-users">
+                        <!-- User items injected here -->
+                    </div>
+                </div>
+
+                <div class="sidebar-footer">
+                    <button id="logout-btn" class="logout-btn">
+                        <span>🚪</span> 退出登录
+                    </button>
+                </div>
+            </div>
+
+            <!-- Main Chat Area -->
+            <div class="main-chat">
+                <div class="chat-header">
+                    <div class="chat-info">
+                        <h2>公共频道</h2>
+                        <p>欢迎来到 DaiP 智能聊天室</p>
+                    </div>
+                </div>
+
+                <div class="chat-messages" id="chat-messages">
+                    <!-- Messages injected here -->
+                    <div class="message system">
+                        <div class="content">欢迎加入聊天室！尝试发送 @电影 [url] 或 @川小农 [message]</div>
+                    </div>
+                </div>
+
+                <div class="chat-input-area">
+                    <div class="toolbar">
+                        <button id="emoji-btn" class="tool-btn" title="发送表情">😊</button>
+                        <button class="tool-btn" title="电影指令" onclick="insertCommand('@电影 ')">🎬</button>
+                        <button class="tool-btn" title="AI对话" onclick="insertCommand('@川小农 ')">🤖</button>
+                    </div>
+                    <div class="input-wrapper">
+                        <textarea id="message-input" placeholder="输入消息..." rows="1"></textarea>
+                        <button id="send-btn" class="send-btn">
+                            <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+                        </button>
+                    </div>
+                    
+                    <!-- Emoji Picker Popover -->
+                    <div id="emoji-picker" class="emoji-picker hidden">
+                        <div class="emoji-grid">
+                            <span>😀</span><span>😃</span><span>😄</span><span>😁</span><span>😆</span>
+                            <span>😅</span><span>😂</span><span>🤣</span><span>😊</span><span>😇</span>
+                            <span>🙂</span><span>🙃</span><span>😉</span><span>😌</span><span>😍</span>
+                            <span>🥰</span><span>😘</span><span>😗</span><span>😙</span><span>😚</span>
+                            <span>😋</span><span>😛</span><span>😝</span><span>😜</span><span>🤪</span>
+                            <span>🤨</span><span>🧐</span><span>🤓</span><span>😎</span><span>🤩</span>
+                            <span>🥳</span><span>😏</span><span>😒</span><span>😞</span><span>😔</span>
+                            <span>😟</span><span>😕</span><span>🙁</span><span>☹️</span><span>😣</span>
+                            <span>😖</span><span>😫</span><span>😩</span><span>🥺</span><span>😢</span>
+                            <span>😭</span><span>😤</span><span>😠</span><span>😡</span><span>🤬</span>
+                            <span>👍</span><span>👎</span><span>👌</span><span>✌️</span><span>🤞</span>
+                            <span>🤝</span><span>👋</span><span>🎬</span><span>🤖</span><span>🔥</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    // DOM Elements
+    const loginScreen = document.getElementById('login-screen');
+    const registerScreen = document.getElementById('register-screen');
+    const chatScreen = document.getElementById('chat-screen');
+    
+    // Login Elements
+    const usernameInput = document.getElementById('username-input');
+    const passwordInput = document.getElementById('password-input');
+    const serverSelect = document.getElementById('server-select');
+    const refreshServerBtn = document.getElementById('refresh-server-btn');
+    const loginButton = document.getElementById('login-btn');
+    const toRegisterButton = document.getElementById('switch-to-register');
+    
+    // Register Elements
+    const regUsernameInput = document.getElementById('register-username-input');
+    const regPasswordInput = document.getElementById('register-password-input');
+    const regConfirmPasswordInput = document.getElementById('register-confirm-password-input');
+    const registerButton = document.getElementById('register-btn');
+    const toLoginButton = document.getElementById('switch-to-login');
+    
+    // Error message elements
+    const loginError = document.getElementById('login-error');
+    const registerError = document.getElementById('register-error');
+    
+    // Show message function
+    function showMessage(element, message, isError = true) {
+        element.textContent = message;
+        element.style.color = isError ? 'red' : 'green';
+        setTimeout(() => {
+            element.textContent = '';
+        }, 3000);
+    }
+    
+    // Switch to register page
+    toRegisterButton.addEventListener('click', () => {
+        loginScreen.classList.remove('active');
+        registerScreen.classList.add('active');
+    });
+    
+    // Switch to login page
+    toLoginButton.addEventListener('click', () => {
+        registerScreen.classList.remove('active');
+        loginScreen.classList.add('active');
+    });
+    
+    // Load servers function
+    function loadServers() {
+        // Add loading state to refresh button
+        refreshServerBtn.classList.add('rotating');
+        
+        // Fetch server list from config API
+        fetch('/api/config')
+            .then(response => response.json())
+            .then(config => {
+                // Clear existing options except the placeholder
+                serverSelect.innerHTML = '<option value="" disabled selected>选择服务器</option>';
+                
+                // Add servers from config
+                if (config.servers && config.servers.length > 0) {
+                    config.servers.forEach((server, index) => {
+                        const option = document.createElement('option');
+                        option.value = server.address;
+                        option.textContent = server.name || `服务器 ${index + 1}`;
+                        serverSelect.appendChild(option);
+                    });
+                } else {
+                    // Add a default server option if none provided
+                    const option = document.createElement('option');
+                    option.value = 'ws://localhost:8888/ws';
+                    option.textContent = '本地服务器';
+                    serverSelect.appendChild(option);
+                }
+            })
+            .catch(error => {
+                console.error('Failed to load servers:', error);
+                // Add a fallback server option
+                serverSelect.innerHTML = '<option value="" disabled>加载服务器失败</option>';
+                const option = document.createElement('option');
+                option.value = 'ws://localhost:8888/ws';
+                option.textContent = '本地服务器（默认）';
+                serverSelect.appendChild(option);
+            })
+            .finally(() => {
+                // Remove loading state from refresh button
+                refreshServerBtn.classList.remove('rotating');
+            });
+    }
+    
+    // Load servers on page load
+    document.addEventListener('DOMContentLoaded', loadServers);
+    
+    // Refresh servers button click event
+    refreshServerBtn.addEventListener('click', loadServers);
+    
+    // Login button click event
+    loginButton.addEventListener('click', () => {
+        const username = usernameInput.value.trim();
+        const password = passwordInput.value;
+        const server = serverSelect.value;
+        
+        if (!username || !password || !server) {
+            showMessage(loginError, '用户名、密码和服务器不能为空');
+            return;
+        }
+        
+        // Send login request
+        fetch('/api/login', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                username: username,
+                password: password,
+                server: server
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Store username globally
+                window.nickname = username;
+                
+                // Hide login screen and show chat screen
+                loginScreen.classList.remove('active');
+                chatScreen.classList.add('active');
+                
+                // Initialize WebSocket connection
+                initWebSocket();
+            } else {
+                showMessage(loginError, data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Login error:', error);
+            showMessage(loginError, '登录失败，请稍后重试');
+        });
+    });
+    
+    // Register button click event
+    registerButton.addEventListener('click', () => {
+        const username = regUsernameInput.value.trim();
+        const password = regPasswordInput.value;
+        const confirmPassword = regConfirmPasswordInput.value;
+        
+        if (!username || !password || !confirmPassword) {
+            showMessage(registerError, '用户名、密码和确认密码不能为空');
+            return;
+        }
+        
+        if (password !== confirmPassword) {
+            showMessage(registerError, '两次输入的密码不一致');
+            return;
+        }
+        
+        // Send register request
+        fetch('/api/register', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                username: username,
+                password: password
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showMessage(registerError, data.message, false);
+                // Switch back to login page after successful registration
+                setTimeout(() => {
+                    registerScreen.classList.remove('active');
+                    loginScreen.classList.add('active');
+                    // Clear input fields
+                    regUsernameInput.value = '';
+                    regPasswordInput.value = '';
+                    regConfirmPasswordInput.value = '';
+                }, 1500);
+            } else {
+                showMessage(registerError, data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Register error:', error);
+            showMessage(registerError, '注册失败，请稍后重试');
+        });
+    });
+    
+    // Enter key press event for login inputs
+    usernameInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+            passwordInput.focus();
+        }
+    });
+    
+    passwordInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+            loginButton.click();
+        }
+    });
+    
+    // Enter key press event for register inputs
+    regUsernameInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+            regPasswordInput.focus();
+        }
+    });
+    
+    regPasswordInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+            regConfirmPasswordInput.focus();
+        }
+    });
+    
+    regConfirmPasswordInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+            registerButton.click();
+        }
+    });
+    
+    // WebSocket connection
+    let socket = null;
+    let reconnectAttempts = 0;
+    const maxReconnectAttempts = 5;
+    const reconnectDelay = 2000;
+    
+    function initWebSocket() {
+        // Load config from server to get WebSocket URL
+        fetch('/api/config')
+            .then(response => response.json())
+            .then(config => {
+                // Use first server address or default to localhost
+                const wsUrl = config.servers && config.servers.length > 0 
+                    ? config.servers[0].address
+                    : 'ws://localhost:8888/ws';
+                
+                // Create WebSocket connection with nickname parameter
+                const url = `${wsUrl}?nickname=${encodeURIComponent(window.nickname)}`;
+                socket = new WebSocket(url);
+                
+                socket.onopen = () => {
+                    console.log('WebSocket connected');
+                    reconnectAttempts = 0;
+                };
+                
+                socket.onmessage = (event) => {
+                    const data = JSON.parse(event.data);
+                    handleWebSocketMessage(data);
+                };
+                
+                socket.onclose = () => {
+                    console.log('WebSocket disconnected, attempting to reconnect...');
+                    reconnectWebSocket();
+                };
+                
+                socket.onerror = (error) => {
+                    console.error('WebSocket error:', error);
+                };
+            })
+            .catch(error => {
+                console.error('Failed to load config:', error);
+                // Fallback to default WebSocket URL
+                const url = `ws://localhost:8888/ws?nickname=${encodeURIComponent(window.nickname)}`;
+                socket = new WebSocket(url);
+            });
+    }
+    
+    function reconnectWebSocket() {
+        if (reconnectAttempts < maxReconnectAttempts) {
+            reconnectAttempts++;
+            setTimeout(() => {
+                console.log(`Reconnect attempt ${reconnectAttempts}/${maxReconnectAttempts}`);
+                initWebSocket();
+            }, reconnectDelay * reconnectAttempts);
+        } else {
+            console.error('Max reconnect attempts reached. Please refresh the page.');
+            alert('与服务器的连接已断开，请刷新页面重试。');
+        }
+    }
+    
+    function handleWebSocketMessage(data) {
+        const messageContainer = document.getElementById('chat-messages');
+        const messageDiv = document.createElement('div');
+        
+        switch (data.type) {
+            case 'system':
+                messageDiv.className = 'message system';
+                messageDiv.innerHTML = `<div class="content">${data.content}</div>`;
+                break;
+                
+            case 'text':
+                messageDiv.className = `message ${data.sender === window.nickname ? 'outgoing' : 'incoming'}`;
+                messageDiv.innerHTML = `
+                    <div class="sender-info">
+                        <span class="sender">${data.sender}</span>
+                        <span class="timestamp">${new Date(data.timestamp).toLocaleTimeString()}</span>
+                    </div>
+                    <div class="content">${data.content}</div>
+                `;
+                break;
+                
+            case 'movie':
+                messageDiv.className = `message ${data.sender === window.nickname ? 'outgoing' : 'incoming'}`;
+                messageDiv.innerHTML = `
+                    <div class="sender-info">
+                        <span class="sender">${data.sender}</span>
+                        <span class="timestamp">${new Date(data.timestamp).toLocaleTimeString()}</span>
+                    </div>
+                    <div class="movie-card">
+                        <div class="movie-poster">
+                            <img src="${data.poster}" alt="${data.title}">
+                        </div>
+                        <div class="movie-info">
+                            <h3 class="movie-title">${data.title}</h3>
+                            <p class="movie-description">${data.description}</p>
+                            <div class="movie-meta">
+                                <span class="movie-rating">评分: ${data.rating}</span>
+                                <span class="movie-year">年份: ${data.year}</span>
+                            </div>
+                            <a href="${data.link}" class="movie-link" target="_blank">查看详情</a>
+                        </div>
+                    </div>
+                `;
+                break;
+                
+            case 'ai_chat':
+                messageDiv.className = 'message ai-message';
+                messageDiv.innerHTML = `
+                    <div class="sender-info">
+                        <span class="sender">${data.sender}</span>
+                        <span class="timestamp">${new Date(data.timestamp).toLocaleTimeString()}</span>
+                    </div>
+                    <div class="content ai-content">${data.content}</div>
+                `;
+                break;
+                
+            case 'ai_response':
+                // Find existing AI message and update it
+                const existingMessage = document.querySelector(`.message.ai-message[data-id="${data.id}"]`);
+                if (existingMessage) {
+                    existingMessage.querySelector('.content').textContent = data.content;
+                }
+                return;
+                
+            case 'user_list':
+                updateUserList(data.users);
+                return;
+        }
+        
+        // Add data-id for AI messages to allow updates
+        if (data.type === 'ai_chat') {
+            messageDiv.setAttribute('data-id', data.id);
+        }
+        
+        messageContainer.appendChild(messageDiv);
+        messageContainer.scrollTop = messageContainer.scrollHeight;
+    }
+    
+    function updateUserList(users) {
+        const userList = document.getElementById('online-users');
+        const userCount = document.getElementById('user-count');
+        userCount.textContent = users.length;
+        
+        userList.innerHTML = '';
+        
+        users.forEach(user => {
+            const userItem = document.createElement('div');
+            userItem.className = 'user-item';
+            userItem.innerHTML = `
+                <div class="avatar-circle"></div>
+                <span>${user}</span>
+                <span class="status-dot online"></span>
+            `;
+            userList.appendChild(userItem);
+        });
+    }
+    
+    // Send message function
+    function sendMessage() {
+        const messageInput = document.getElementById('message-input');
+        const content = messageInput.value.trim();
+        
+        if (content && socket && socket.readyState === WebSocket.OPEN) {
+            const message = {
+                type: 'text',
+                content: content,
+                timestamp: Date.now()
+            };
+            
+            socket.send(JSON.stringify(message));
+            messageInput.value = '';
+        }
+    }
+    
+    // Send message button click event
+    document.getElementById('send-btn').addEventListener('click', sendMessage);
+    
+    // Enter key press event for message input
+    document.getElementById('message-input').addEventListener('keypress', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            sendMessage();
+        }
+    });
+    
+    // Insert command function for toolbar buttons
+    function insertCommand(command) {
+        const messageInput = document.getElementById('message-input');
+        const startPos = messageInput.selectionStart;
+        const endPos = messageInput.selectionEnd;
+        const currentValue = messageInput.value;
+        
+        messageInput.value = currentValue.substring(0, startPos) + command + currentValue.substring(endPos);
+        messageInput.focus();
+        messageInput.setSelectionRange(startPos + command.length, startPos + command.length);
+    }
+</script>
+</body>
+</html>
