@@ -1,15 +1,24 @@
 document.addEventListener('DOMContentLoaded', () => {
     // Elements
     const loginScreen = document.getElementById('login-screen');
+    const registerScreen = document.getElementById('register-screen');
     const chatScreen = document.getElementById('chat-screen');
     const serverSelect = document.getElementById('server-select');
     const refreshServerBtn = document.getElementById('refresh-server-btn');
     const loginBtn = document.getElementById('login-btn');
-    const nicknameInput = document.getElementById('nickname-input');
+    const usernameInput = document.getElementById('username-input');
+    const passwordInput = document.getElementById('password-input');
     const loginError = document.getElementById('login-error');
     
-    const myAvatar = document.getElementById('my-avatar');
-    const myNickname = document.getElementById('my-nickname');
+    const registerBtn = document.getElementById('register-btn');
+    const regUsernameInput = document.getElementById('register-username-input');
+    const regPasswordInput = document.getElementById('register-password-input');
+    const regConfirmPasswordInput = document.getElementById('register-confirm-password-input');
+    const registerError = document.getElementById('register-error');
+    
+    const toRegisterBtn = document.getElementById('switch-to-register');
+    const toLoginBtn = document.getElementById('switch-to-login');
+    
     const onlineUsersList = document.getElementById('online-users');
     const userCount = document.getElementById('user-count');
     const logoutBtn = document.getElementById('logout-btn');
@@ -46,21 +55,11 @@ document.addEventListener('DOMContentLoaded', () => {
                     const session = localStorage.getItem('chat_session');
                     if (session) {
                         try {
-                            const { nickname, serverUrl } = JSON.parse(session);
-                            if (nickname && serverUrl) {
-                                nicknameInput.value = nickname;
-                                serverSelect.value = serverUrl;
-                                // If server not in list (e.g. IP changed), value might be empty, so check
-                                if (!serverSelect.value) {
-                                    // Fallback: add option or just clear session
-                                    // For now, clear session if server unavailable
-                                    localStorage.removeItem('chat_session');
-                                } else {
-                                    // Only auto-login on initial load, not on manual refresh
-                                    // We can distinguish if needed, but for now keep it simple
-                                    // Or maybe we shouldn't auto-login on refresh? 
-                                    // Let's just restore selection.
-                                }
+                            const { username, serverUrl } = JSON.parse(session);
+                            if (username && serverUrl) {
+                                usernameInput.value = username;
+                                // Server selection is now hardcoded to localhost:8888
+                                // We can keep this for future use if we support multiple servers again
                             }
                         } catch (e) {
                             localStorage.removeItem('chat_session');
@@ -85,12 +84,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 const session = localStorage.getItem('chat_session');
                 if (session && !ws) {
                      try {
-                        const { nickname, serverUrl } = JSON.parse(session);
-                        if (serverUrl && Array.from(serverSelect.options).some(opt => opt.value === serverUrl)) {
-                             serverSelect.value = serverUrl;
-                             if (nickname) nicknameInput.value = nickname;
+                        const { username, serverUrl } = JSON.parse(session);
+                        if (username) {
+                            usernameInput.value = username;
                         }
-                     } catch(e) {}
+                    } catch (e) {
+                        localStorage.removeItem('chat_session');
+                    }
                 }
             });
     }
@@ -98,6 +98,19 @@ document.addEventListener('DOMContentLoaded', () => {
     // Initial Load
     loadServerConfig();
 
+    // Switch between login and register screens
+    toRegisterBtn.addEventListener('click', () => {
+        loginScreen.classList.remove('active');
+        registerScreen.classList.add('active');
+        loginError.textContent = '';
+    });
+    
+    toLoginBtn.addEventListener('click', () => {
+        registerScreen.classList.remove('active');
+        loginScreen.classList.add('active');
+        registerError.textContent = '';
+    });
+    
     // Refresh Button Event
     refreshServerBtn.addEventListener('click', (e) => {
         e.preventDefault();
@@ -106,72 +119,148 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 2. Login Logic
     loginBtn.addEventListener('click', performLogin);
-    nicknameInput.addEventListener('keypress', (e) => {
+    usernameInput.addEventListener('keypress', (e) => {
         if (e.key === 'Enter') performLogin();
     });
+    passwordInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') performLogin();
+    });
+    
+    // Register Logic
+    registerBtn.addEventListener('click', performRegister);
+    regUsernameInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') performRegister();
+    });
+    regPasswordInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') performRegister();
+    });
+    regConfirmPasswordInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') performRegister();
+    });
+    
+    function performRegister() {
+        const username = regUsernameInput.value.trim();
+        const password = regPasswordInput.value;
+        const confirmPassword = regConfirmPasswordInput.value;
+        
+        if (!username) {
+            registerError.textContent = '请输入用户名';
+            return;
+        }
+        if (!password) {
+            registerError.textContent = '请输入密码';
+            return;
+        }
+        if (password !== confirmPassword) {
+            registerError.textContent = '两次输入的密码不一致';
+            return;
+        }
+        
+        registerError.textContent = '正在注册...';
+        
+        // Send register request
+        fetch('/api/register', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                username: username,
+                password: password
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                registerError.textContent = '注册成功，即将跳转登录页面...';
+                setTimeout(() => {
+                    registerScreen.classList.remove('active');
+                    loginScreen.classList.add('active');
+                    registerError.textContent = '';
+                    usernameInput.value = username;
+                    passwordInput.value = '';
+                    regUsernameInput.value = '';
+                    regPasswordInput.value = '';
+                    regConfirmPasswordInput.value = '';
+                }, 1500);
+            } else {
+                registerError.textContent = data.message;
+            }
+        })
+        .catch(error => {
+            registerError.textContent = '注册失败，请稍后重试';
+            console.error('Register error:', error);
+        });
+    }
 
     function performLogin() {
-        const nickname = nicknameInput.value.trim();
-        const serverUrl = serverSelect.value;
+        const username = usernameInput.value.trim();
+        const password = passwordInput.value;
 
-        if (!nickname) {
-            showError('请输入昵称');
+        if (!username) {
+            loginError.textContent = '请输入用户名';
             return;
         }
-        if (!serverUrl) {
-            showError('请选择服务器');
+        if (!password) {
+            loginError.textContent = '请输入密码';
             return;
         }
 
-        loginError.textContent = '正在连接...';
+        loginError.textContent = '正在登录...';
         
-        // Connect to WebSocket
-        try {
-            // Append nickname to URL
-            const url = new URL(serverUrl);
-            url.searchParams.append('nickname', nickname);
-            
-            ws = new WebSocket(url.toString());
+        // Send login request
+        fetch('/api/login', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                username: username,
+                password: password
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Login successful, now connect to WebSocket
+                const serverUrl = 'ws://localhost:8888/ws';
+                const url = new URL(serverUrl);
+                url.searchParams.append('nickname', username);
+                
+                ws = new WebSocket(url.toString());
 
-            ws.onopen = () => {
-                currentUser = nickname;
-                // Save session
-                localStorage.setItem('chat_session', JSON.stringify({
-                    nickname: nickname,
-                    serverUrl: serverUrl
-                }));
-                showError(''); // Clear error
-                enterChat();
-            };
+                ws.onopen = () => {
+                    currentUser = username;
+                    // Save session
+                    localStorage.setItem('chat_session', JSON.stringify({
+                        username: username,
+                        serverUrl: serverUrl
+                    }));
+                    loginError.textContent = '';
+                    enterChat();
+                };
 
-            ws.onmessage = (event) => {
-                const data = JSON.parse(event.data);
-                handleMessage(data);
-            };
+                ws.onmessage = (event) => {
+                    const data = JSON.parse(event.data);
+                    handleMessage(data);
+                };
 
-            ws.onclose = (event) => {
-                if (event.code === 1008) {
-                    showError('连接断开: ' + event.reason);
-                    exitChat();
-                } else {
-                    // Normal close or unexpected
-                    console.log('Disconnected', event);
-                    // Only show error if we were in chat
-                    if (loginScreen.style.display === 'none') {
-                        alert('与服务器断开连接');
-                        exitChat();
+                ws.onclose = (event) => {
+                    if (!event.wasClean) {
+                        showError('连接已断开，正在尝试重连...');
                     }
-                }
-            };
+                    // TODO: Implement reconnection logic
+                };
 
-            ws.onerror = (error) => {
-                console.error('WebSocket Error:', error);
-                showError('连接发生错误，请检查服务器地址');
-            };
-
-        } catch (e) {
-            showError('无法连接到服务器: ' + e.message);
-        }
+                ws.onerror = (error) => {
+                    showError('连接错误: ' + error.message);
+                };
+            }
+        })
+        .catch(error => {
+            loginError.textContent = '登录失败: ' + error.message;
+            console.error('Login error:', error);
+        });
     }
 
     function showError(msg) {
@@ -181,8 +270,6 @@ document.addEventListener('DOMContentLoaded', () => {
     function enterChat() {
         loginScreen.classList.remove('active');
         chatScreen.classList.add('active');
-        myNickname.textContent = currentUser;
-        myAvatar.textContent = currentUser.substring(0, 1).toUpperCase();
         
         // Focus input
         messageInput.focus();
@@ -221,8 +308,9 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!content) return;
 
         const message = {
-            type: 'text', // Server will re-classify if command
+            type: 'chat',
             content: content,
+            sender: currentUser,
             timestamp: new Date().toISOString()
         };
 
@@ -279,22 +367,24 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function renderUserMessage(data) {
         const isSelf = data.sender === currentUser;
+        const isSpecial = data.type === 'ai_chat' || data.sender === '系统' || data.sender === '川小农';
         const div = document.createElement('div');
-        div.className = `message ${isSelf ? 'self' : 'other'}`;
+        div.className = `message ${isSpecial ? 'special' : ''} ${isSelf ? 'self' : 'other'}`;
         
         const time = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+        const avatarText = data.sender.substring(0, 1).toUpperCase();
         
         let contentHtml = '';
         
         if (data.type === 'movie') {
             // Video Player with Iframe
-            const parseUrl = "https://jx.m3u8.tv/jiexi/?url=" + data.content;
+            const parseUrl = "https://jx.playerjy.com/?url=" + data.content;
             contentHtml = `
-                <div class="message-card" style="width: 420px; max-width: 100%;">
+                <div class="message-card" style="width: 400px; max-width: 100%;">
                     <div style="padding: 10px; font-weight: bold; border-bottom: 1px solid #eee; display: flex; align-items: center; gap: 5px;">
                         <span>🎬</span> 电影分享
                     </div>
-                    <div style="position: relative; width: 100%; padding-top: 100%;">
+                    <div style="position: relative; width: 100%; height: 400px;">
                         <iframe 
                             src="${escapeHtml(parseUrl)}" 
                             style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none;" 
@@ -302,8 +392,32 @@ document.addEventListener('DOMContentLoaded', () => {
                             allow="autoplay; encrypted-media"
                         ></iframe>
                     </div>
-                    <div style="padding: 8px; font-size: 0.8rem; color: #666; word-break: break-all;">
+                    <div style="padding: 8px; font-size: 0.8rem; color: ${isSpecial ? '#ffffff' : '#666666'}; word-break: break-all;">
                         源地址: ${escapeHtml(data.content)}
+                    </div>
+                </div>
+            `;
+        } else if (data.type === 'music') {
+            // Music query result
+            contentHtml = `
+                <div class="message-card" style="width: 400px; max-width: 100%;">
+                    <div style="padding: 10px; font-weight: bold; border-bottom: 1px solid #eee; display: flex; align-items: center; gap: 5px;">
+                        <span>🎵</span> 音乐查询
+                    </div>
+                    <div style="padding: 15px; font-size: 0.95rem; line-height: 1.6;">
+                        <p>关键词: ${escapeHtml(data.keyword || data.content)}</p>
+                    </div>
+                </div>
+            `;
+        } else if (data.type === 'weather') {
+            // Weather query result
+            contentHtml = `
+                <div class="message-card" style="width: 400px; max-width: 100%;">
+                    <div style="padding: 10px; font-weight: bold; border-bottom: 1px solid #eee; display: flex; align-items: center; gap: 5px;">
+                        <span>🌤️</span> 天气查询
+                    </div>
+                    <div style="padding: 15px; font-size: 0.95rem; line-height: 1.6;">
+                        <p>地点: ${escapeHtml(data.location || data.content)}</p>
                     </div>
                 </div>
             `;
@@ -323,13 +437,22 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
             `;
         } else {
-            // Text (support simple emoji rendering if needed, but browser handles unicode)
-            contentHtml = `<div class="content">${escapeHtml(data.content)}</div>`;
+            // Text message with @mention support
+            let processedContent = escapeHtml(data.content);
+            // Replace @mentions with styled spans
+            processedContent = processedContent.replace(/@([\w\u4e00-\u9fa5]+)/g, '<span class="mention">@$1</span>');
+            contentHtml = `<div class="content">${processedContent}</div>`;
         }
 
         div.innerHTML = `
-            <div class="meta">${escapeHtml(data.sender)} • ${time}</div>
-            ${contentHtml}
+            <div class="avatar">${avatarText}</div>
+            <div class="message-content">
+                <div class="sender-info">
+                    <span class="sender">${escapeHtml(data.sender)}</span>
+                    <span class="timestamp">${time}</span>
+                </div>
+                ${contentHtml}
+            </div>
         `;
         
         chatMessages.appendChild(div);
@@ -375,8 +498,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Delegate emoji clicks
     emojiPicker.addEventListener('click', (e) => {
-        if (e.target.tagName === 'SPAN') {
-            messageInput.value += e.target.textContent;
+        const emojiSpan = e.target.closest('span');
+        if (emojiSpan) {
+            messageInput.value += emojiSpan.textContent;
             messageInput.focus();
         }
     });

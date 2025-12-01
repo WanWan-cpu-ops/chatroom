@@ -11,6 +11,10 @@ from openai import AsyncOpenAI
 
 # Store connected users: {nickname: WebSocketHandler}
 clients = {}
+# AI Config
+AI_API_KEY = "sk-orxlsmelhexcosqumhchsiabeasxhwkmvcfzqqjakwhqoaqv"
+AI_BASE_URL = "https://api.siliconflow.cn/v1"
+AI_MODEL = "Qwen/Qwen2.5-7B-Instruct"
 
 # Initialize SQLite database
 conn = sqlite3.connect('users.db', check_same_thread=False)
@@ -49,7 +53,7 @@ def username_exists(username):
     return cursor.fetchone() is not None
 
 # AI Config
-AI_API_KEY = "sk-orxlsmelhexcosqumhchsiabeasxhwkmvcfzqqjakwhqoaqv"
+AI_API_KEY = "sk-hfliewlkxcdlaqewynsjdbqvszbdnczaqjhmovarekdvzhpm"
 AI_BASE_URL = "https://api.siliconflow.cn/v1"
 AI_MODEL = "Qwen/Qwen2.5-7B-Instruct"
 
@@ -169,12 +173,42 @@ class ChatWebSocket(tornado.websocket.WebSocketHandler):
             
             # Handle commands
             if content.startswith("@电影 "):
-                # Format: @电影 https://example.com/video.mp4
+                # Format: @电影 `https://example.com/video.mp4` 
                 url = content.split(" ", 1)[1]
                 response = {
                     "type": "movie",
                     "sender": self.nickname,
                     "content": url,
+                    "raw_content": content,
+                    "timestamp": data.get("timestamp")
+                }
+            elif content.startswith("@音乐 "):
+                # Format: @音乐 keyword
+                keyword = content.split(" ", 1)[1]
+                response = {
+                    "type": "music",
+                    "sender": self.nickname,
+                    "keyword": keyword,
+                    "raw_content": content,
+                    "timestamp": data.get("timestamp")
+                }
+            elif content.startswith("@天气 "):
+                # Format: @天气 location
+                location = content.split(" ", 1)[1]
+                response = {
+                    "type": "weather",
+                    "sender": self.nickname,
+                    "location": location,
+                    "raw_content": content,
+                    "timestamp": data.get("timestamp")
+                }
+            elif content.startswith("@新闻 "):
+                # Format: @新闻 keyword
+                keyword = content.split(" ", 1)[1]
+                response = {
+                    "type": "news",
+                    "sender": self.nickname,
+                    "keyword": keyword,
                     "raw_content": content,
                     "timestamp": data.get("timestamp")
                 }
@@ -225,22 +259,29 @@ class ChatWebSocket(tornado.websocket.WebSocketHandler):
             
         except Exception as e:
             print(f"Error handling message: {e}")
-
+  
     async def stream_ai_response(self, query, response_id):
         try:
             stream = await ai_client.chat.completions.create(
                 model=AI_MODEL,
                 messages=[
                     {"role": "system", "content": """角色：你是一名计算机科学与技术专业的方案编写助手
-功能：
-1、你可以接收用户输入的信息或关键字，通过信息或关键字，你可以分析生成与之有关的10个文案主题，以供用户选择。主题列表形式如下：
-[1]xxxxxxx
-[2]uuuuuuuuu
-……
-2、你需要提示用户选择主题编号，并通过该主题编号对应的主题内容，生成两种风格的大纲，大纲需要包含一级、二级标题，风格如下：
-风格一：专业风
-风格二：学生风
-3、你需要提示用户选择风格，并按风格生成与之对应的详细内容。"""},
+ 功能：
+ 1、你可以接收用户输入的信息或关键字，通过信息或关键字，你可以分析生成与之有关的10个文案主题，以供用户选择。主题列表形式如下：
+ 
+ [1]xxxxxxx
+ 
+ [2]uuuuuuuuu
+ 
+ ……
+ 
+ 2、你需要提示用户选择主题编号，并通过该主题编号对应的主题内容，生成两种风格的大纲，大纲需要包含一级、二级标题，风格如下：
+ 
+ 风格一：专业风
+ 
+ 风格二：学生风
+ 
+ 3、你需要提示用户选择风格，并按风格生成与之对应的详细内容。"""},
                     {"role": "user", "content": query}
                 ],
                 stream=True
@@ -256,7 +297,7 @@ class ChatWebSocket(tornado.websocket.WebSocketHandler):
                         "content": content
                     }
                     self.broadcast(update_msg)
-            
+
             # Optional: Send completion message if needed, or just stop
             
         except Exception as e:
