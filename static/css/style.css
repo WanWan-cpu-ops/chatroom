@@ -612,38 +612,45 @@ select option {
     scroll-behavior: smooth;
 }
 
+/* QQ Style Chat Interface */
+
+/* Global Styles */
+body {
+    font-family: 'Microsoft YaHei', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    background-color: #f5f5f5;
+}
+
+/* Message Container */
 .message {
     display: flex;
     width: 100%;
-    margin-bottom: 0;
+    margin-bottom: 12px;
     position: relative;
+    padding: 0;
+    align-items: flex-start;
 }
 
+/* Avatar Style - Hidden */
 .message .avatar {
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    background: #e0e0e0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: bold;
-    color: #666666;
-    margin-right: 10px;
-    flex-shrink: 0;
+    display: none;
 }
 
+/* Message Content Container */
 .message-content {
     flex: 1;
     display: flex;
     flex-direction: column;
+    align-items: flex-start;
+    max-width: 100%;
 }
 
+/* Sender Info */
 .message .sender-info {
     display: flex;
     align-items: center;
     gap: 8px;
     margin-bottom: 4px;
+    margin-left: 0;
 }
 
 .message .sender {
@@ -657,27 +664,24 @@ select option {
     color: #999999;
 }
 
+/* Base Message Bubble */
 .message .content {
     background: #ffffff;
     color: #333333;
-    border-radius: 12px;
+    border-radius: 18px;
     padding: 10px 14px;
     word-wrap: break-word;
-    line-height: 1.4;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-    max-width: 80%;
+    line-height: 1.5;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+    max-width: 70%;
     position: relative;
-}
-
-/* Blue background for special messages */
-.message.special .content {
-    background: #4a90e2;
-    color: #ffffff;
+    font-size: 0.95rem;
+    border-bottom-left-radius: 4px;
 }
 
 /* @mention styles */
 .message .content .mention {
-    background: #e0e0e0;
+    background: #f0f0f0;
     color: #666666;
     padding: 2px 6px;
     border-radius: 10px;
@@ -685,12 +689,53 @@ select option {
     font-weight: 500;
 }
 
-.message.special .content .mention {
-    background: rgba(255, 255, 255, 0.2);
-    color: #ffffff;
+/* Self Message Styles (Left Aligned, White Background) */
+.message.self {
+    flex-direction: row;
 }
 
-/* System message styles */
+.message.self .message-content {
+    align-items: flex-start;
+}
+
+.message.self .sender-info {
+    display: flex; /* Show sender info for self messages */
+}
+
+.message.self .content {
+    background: #ffffff;
+    color: #333333;
+    border-radius: 18px;
+    border-bottom-left-radius: 4px;
+    padding: 10px 14px;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+    font-size: 0.95rem;
+    line-height: 1.5;
+    max-width: 70%;
+}
+
+/* AI/Other Message Styles (Right Aligned, White Background) */
+.message.other, .message.special, .message.ai-message {
+    flex-direction: row-reverse;
+}
+
+.message.other .message-content, .message.special .message-content, .message.ai-message .message-content {
+    align-items: flex-end;
+}
+
+.message.other .content, .message.special .content, .message.ai-message .content {
+    background: #ffffff;
+    color: #333333;
+    border-radius: 18px;
+    border-bottom-right-radius: 4px;
+    padding: 10px 14px;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+    font-size: 0.95rem;
+    line-height: 1.5;
+    max-width: 70%;
+}
+
+/* System Message Styles */
 .message.system {
     justify-content: center;
     margin: 10px 0;
@@ -701,18 +746,32 @@ select option {
 }
 
 .message.system .content {
-    background: #e0e0e0;
+    background: #ffffff;
     color: #666666;
     font-size: 0.85rem;
     padding: 6px 12px;
     border-radius: 15px;
     max-width: fit-content;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
-/* AI message styles */
-.message.ai-message .avatar {
-    background: #4a90e2;
-    color: #ffffff;
+/* AI message specific styles */
+.message.ai-message .content {
+    background: #ffffff;
+    color: #333333;
+}
+
+/* Special message styles */
+.message.special .content {
+    background: #ffffff;
+    color: #333333;
+}
+
+/* Chat Messages Container */
+.chat-messages {
+    background-color: #f5f5f5;
+    padding: 10px;
+    overflow-y: auto;
 }
 
 /* Make the design responsive */

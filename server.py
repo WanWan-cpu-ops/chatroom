@@ -171,6 +171,8 @@ class ChatWebSocket(tornado.websocket.WebSocketHandler):
             msg_type = data.get("type", "text")
             content = data.get("content", "")
             
+            print(f"收到客户端消息: {data}")
+            
             # Handle commands
             if content.startswith("@电影 "):
                 # Format: @电影 `https://example.com/video.mp4` 
@@ -248,6 +250,7 @@ class ChatWebSocket(tornado.websocket.WebSocketHandler):
                 return # Return here to avoid double broadcasting
 
             else:
+                # Handle both 'chat' and 'text' types
                 response = {
                     "type": "text",
                     "sender": self.nickname,
@@ -255,10 +258,13 @@ class ChatWebSocket(tornado.websocket.WebSocketHandler):
                     "timestamp": data.get("timestamp")
                 }
             
+            print(f"广播消息: {response}")
             self.broadcast(response)
             
         except Exception as e:
             print(f"Error handling message: {e}")
+            import traceback
+            traceback.print_exc()
   
     async def stream_ai_response(self, query, response_id):
         try:

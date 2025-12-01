@@ -227,9 +227,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 const url = new URL(serverUrl);
                 url.searchParams.append('nickname', username);
                 
+                console.log('正在连接WebSocket:', url.toString());
                 ws = new WebSocket(url.toString());
 
                 ws.onopen = () => {
+                    console.log('WebSocket连接成功');
                     currentUser = username;
                     // Save session
                     localStorage.setItem('chat_session', JSON.stringify({
@@ -241,11 +243,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 };
 
                 ws.onmessage = (event) => {
+                    console.log('收到WebSocket消息:', event.data);
                     const data = JSON.parse(event.data);
                     handleMessage(data);
                 };
 
                 ws.onclose = (event) => {
+                    console.log('WebSocket连接关闭:', event);
                     if (!event.wasClean) {
                         showError('连接已断开，正在尝试重连...');
                     }
@@ -253,6 +257,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 };
 
                 ws.onerror = (error) => {
+                    console.error('WebSocket错误:', error);
                     showError('连接错误: ' + error.message);
                 };
             }
@@ -302,10 +307,18 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     function sendMessage() {
-        if (!ws || ws.readyState !== WebSocket.OPEN) return;
+        console.log('sendMessage函数被调用');
+        console.log('WebSocket状态:', ws ? ws.readyState : '未初始化');
+        if (!ws || ws.readyState !== WebSocket.OPEN) {
+            console.error('WebSocket连接未打开，无法发送消息');
+            return;
+        }
         
         const content = messageInput.value.trim();
-        if (!content) return;
+        if (!content) {
+            console.error('消息内容为空，无法发送');
+            return;
+        }
 
         const message = {
             type: 'chat',
@@ -314,6 +327,7 @@ document.addEventListener('DOMContentLoaded', () => {
             timestamp: new Date().toISOString()
         };
 
+        console.log('发送消息:', message);
         ws.send(JSON.stringify(message));
         messageInput.value = '';
         
@@ -427,11 +441,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // data.id is the unique ID for this session
             contentHtml = `
                 <div class="content">
-                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
-                        <div class="avatar-small" style="background: #00cec9;">AI</div>
-                        <span style="color: #00cec9; font-weight: bold;">川小农</span>
-                    </div>
-                    <div id="ai-content-${data.id}" data-streaming="false" style="font-size: 0.95rem; line-height: 1.6; color: #666; white-space: pre-wrap;">
+                    <div id="ai-content-${data.id}" data-streaming="false" style="font-size: 0.95rem; line-height: 1.6; color: #2d3436; white-space: pre-wrap;">
                         🤖 AI 正在思考中...
                     </div>
                 </div>
