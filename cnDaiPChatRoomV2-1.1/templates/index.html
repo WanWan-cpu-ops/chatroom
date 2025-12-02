@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DaiP 智能聊天室</title>
+    <link rel="stylesheet" href="/static/css/style.css?v=2.0">
+    <link rel="stylesheet" href="/static/css/scrollbar.css?v=2.0">
+</head>
+<body>
+    <!-- Login Screen -->
+    <div id="login-screen" class="screen active">
+        <div class="login-bg-decoration"></div>
+        <div class="login-card">
+            <div class="logo-area">
+                <h1>DaiP</h1>
+                <p>带派AI聊天室</p>
+            </div>
+            
+            <!-- Login Form -->
+            <div id="login-form" class="form-container active">
+                <div class="form-group">
+                    <label>用户名</label>
+                    <input type="text" id="login-username" placeholder="请输入用户名" maxlength="15">
+                </div>
+                <div class="form-group">
+                    <label>密码</label>
+                    <input type="password" id="login-password" placeholder="请输入密码">
+                </div>
+                <div class="form-group">
+                    <label>服务器</label>
+                    <div class="select-wrapper">
+                        <select id="server-select">
+                            <option value="" disabled selected>加载中...</option>
+                        </select>
+                        <button id="refresh-server-btn" class="icon-btn" title="刷新服务器列表">
+                            <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="23 4 23 10 17 10"></polyline>
+                                <polyline points="1 20 1 14 7 14"></polyline>
+                                <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+                <button id="login-btn">登录</button>
+                <p class="toggle-form">没有账号？<a href="#" onclick="toggleForm('register')">立即注册</a></p>
+            </div>
+            
+            <!-- Register Form -->
+            <div id="register-form" class="form-container">
+                <div class="form-group">
+                    <label>用户名</label>
+                    <input type="text" id="register-username" placeholder="请输入用户名" maxlength="15">
+                </div>
+                <div class="form-group">
+                    <label>密码</label>
+                    <input type="password" id="register-password" placeholder="请输入密码">
+                </div>
+                <div class="form-group">
+                    <label>确认密码</label>
+                    <input type="password" id="register-confirm-password" placeholder="请再次输入密码">
+                </div>
+                <button id="register-btn">注册</button>
+                <p class="toggle-form">已有账号？<a href="#" onclick="toggleForm('login')">立即登录</a></p>
+            </div>
+            
+            <p id="form-error" class="error-msg"></p>
+        </div>
+    </div>
+
+    <!-- Chat Screen -->
+    <div id="chat-screen" class="screen">
+        <div class="container">
+            <!-- Sidebar -->
+            <div class="sidebar">
+                <div class="sidebar-header">
+                    <div class="avatar-circle" id="my-avatar"></div>
+                    <div class="user-info">
+                        <h3 id="my-nickname">User</h3>
+                        <span class="status-dot online"></span> 在线
+                    </div>
+                </div>
+                
+                <div class="sidebar-section">
+                    <h4>在线用户 (<span id="user-count">0</span>)</h4>
+                    <div class="user-list" id="online-users">
+                        <!-- User items injected here -->
+                    </div>
+                </div>
+
+                <div class="sidebar-footer">
+                    <button id="logout-btn" class="logout-btn">
+                        <span>🚪</span> 退出登录
+                    </button>
+                </div>
+            </div>
+
+            <!-- Main Chat Area -->
+            <div class="main-chat">
+                <div class="chat-header">
+                    <div class="chat-info">
+                        <h2>公共频道</h2>
+                        <p>欢迎来到 DaiP 智能聊天室</p>
+                    </div>
+                </div>
+
+                <div class="chat-messages" id="chat-messages">
+                    <!-- Messages injected here -->
+                    <div class="message system">
+                        <div class="content">欢迎加入聊天室！尝试发送 @电影 [url]、@川小农 [message]、@天气 [城市]、@音乐 [歌曲] 或 @新闻 [关键词]</div>
+                    </div>
+                </div>
+
+                <div class="chat-input-area">
+                    <div class="toolbar">
+                        <button id="emoji-btn" class="tool-btn" title="发送表情">😊</button>
+                        <button class="tool-btn" title="电影指令" onclick="insertCommand('@电影 ')">🎬</button>
+                        <button class="tool-btn" title="AI对话" onclick="insertCommand('@川小农 ')">🤖</button>
+                        <button class="tool-btn" title="天气查询" onclick="insertCommand('@天气 ')">🌤️</button>
+                        <button class="tool-btn" title="音乐指令" onclick="insertCommand('@音乐 ')">🎵</button>
+                        <button class="tool-btn" title="新闻查询" onclick="insertCommand('@新闻 ')">📰</button>
+                    </div>
+                    <div class="input-wrapper">
+                        <textarea id="message-input" placeholder="输入消息..." rows="1"></textarea>
+                        <button id="send-btn" class="send-btn">
+                            <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+                        </button>
+                    </div>
+                    
+                    <!-- Emoji Picker Popover -->
+                    <div id="emoji-picker" class="emoji-picker hidden">
+                        <div class="emoji-grid">
+                            <span>😀</span><span>😃</span><span>😄</span><span>😁</span><span>😆</span>
+                            <span>😅</span><span>😂</span><span>🤣</span><span>😊</span><span>😇</span>
+                            <span>🙂</span><span>🙃</span><span>😉</span><span>😌</span><span>😍</span>
+                            <span>🥰</span><span>😘</span><span>😗</span><span>😙</span><span>😚</span>
+                            <span>😋</span><span>😛</span><span>😝</span><span>😜</span><span>🤪</span>
+                            <span>🤨</span><span>🧐</span><span>🤓</span><span>😎</span><span>🤩</span>
+                            <span>🥳</span><span>😏</span><span>😒</span><span>😞</span><span>😔</span>
+                            <span>😟</span><span>😕</span><span>🙁</span><span>☹️</span><span>😣</span>
+                            <span>😖</span><span>😫</span><span>😩</span><span>🥺</span><span>😢</span>
+                            <span>😭</span><span>😤</span><span>😠</span><span>😡</span><span>🤬</span>
+                            <span>👍</span><span>👎</span><span>👌</span><span>✌️</span><span>🤞</span>
+                            <span>🤝</span><span>👋</span><span>🎬</span><span>🤖</span><span>🔥</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/js/main.js?v=2.0"></script>
+</body>
+</html>
