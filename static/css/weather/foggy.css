@@ -1,0 +1,13 @@
+/* 雾/霾 */
+.fog {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle, rgba(200,200,200,0.1) 0%, rgba(200,200,200,0.3) 100%);
+    animation: fogMove linear infinite;
+}
+
+@keyframes fogMove {
+    from { transform: translateY(0); }
+    to { transform: translateY(-10px); }
+}

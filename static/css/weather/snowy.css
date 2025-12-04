@@ -1,0 +1,27 @@
+/* 雪花 */
+.snowflake {
+    position: absolute;
+    width: 8px;
+    height: 8px;
+    background: white;
+    border-radius: 50%;
+    opacity: 1.0;
+    animation: snowfall linear infinite;
+}
+
+@keyframes snowfall {
+    0% {
+        transform: translateY(-20px) translateX(0);
+        opacity: 1.0;
+    }
+    10% {
+        opacity: 1.0;
+    }
+    90% {
+        opacity: 1.0;
+    }
+    100% {
+        transform: translateY(100vh) translateX(50px);
+        opacity: 1.0;
+    }
+}

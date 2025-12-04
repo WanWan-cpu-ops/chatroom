@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DaiP 智能聊天室 - 登录</title>
+    <link rel="stylesheet" href="/static/css/common.css?v={{ version }}">
+    <link rel="stylesheet" href="/static/css/login.css?v={{ version }}">
+    <link rel="stylesheet" href="/static/css/scrollbar.css?v={{ version }}">
+</head>
+<body>
+    <!-- 登录界面 -->
+    <div id="login-screen" class="screen active">
+        <div class="login-bg-decoration"></div>
+        <div class="login-card">
+            <div class="logo-area">
+                <h1>DaiP</h1>
+                <p>带派AI聊天室</p>
+            </div>
+            <div class="form-group">
+                <label>用户名</label>
+                <input type="text" id="login-username" placeholder="请输入您的用户名" maxlength="15">
+            </div>
+            <div class="form-group">
+                <label>密码</label>
+                <input type="password" id="login-password" placeholder="请输入您的密码">
+            </div>
+            <button id="login-btn">登录</button>
+            <p id="login-error" class="error-msg"></p>
+            <div class="switch-screen">
+                <p>还没有账号？<a href="#" id="switch-to-register">立即注册</a></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- 注册界面 -->
+    <div id="register-screen" class="screen">
+        <div class="login-bg-decoration"></div>
+        <div class="login-card">
+            <div class="logo-area">
+                <h1>DaiP</h1>
+                <p>带派AI聊天室</p>
+            </div>
+            <div class="form-group">
+                <label>用户名</label>
+                <input type="text" id="register-username" placeholder="请输入您的用户名" maxlength="15">
+            </div>
+            <div class="form-group">
+                <label>密码</label>
+                <input type="password" id="register-password" placeholder="请输入您的密码（至少6个字符）">
+            </div>
+            <div class="form-group">
+                <label>确认密码</label>
+                <input type="password" id="register-confirm-password" placeholder="请再次输入密码">
+            </div>
+            <button id="register-btn">注册</button>
+            <p id="register-error" class="error-msg"></p>
+            <div class="switch-screen">
+                <p>已有账号？<a href="#" id="switch-to-login">立即登录</a></p>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="/static/js/login.js?v={{ version }}"></script>
+</body>
+</html>

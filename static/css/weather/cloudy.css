@@ -1,0 +1,36 @@
+/* 多云 */
+.cloud {
+    position: absolute;
+    width: 100px;
+    height: 40px;
+    background: rgba(255,255,255,0.8);
+    border-radius: 20px;
+    animation: cloudMove linear infinite;
+}
+
+.cloud::before, .cloud::after {
+    content: '';
+    position: absolute;
+    background: rgba(255,255,255,0.8);
+    border-radius: 50%;
+}
+
+.cloud::before {
+    width: 50px;
+    height: 50px;
+    top: -25px;
+    left: 10px;
+}
+
+.cloud::after {
+    width: 60px;
+    height: 60px;
+    top: -30px;
+    left: 30px;
+}
+
+/* 云朵移动动画 */
+@keyframes cloudMove {
+    from { transform: translateX(-150px); }
+    to { transform: translateX(calc(100vw + 150px)); }
+}

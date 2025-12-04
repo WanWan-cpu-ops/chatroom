@@ -1,0 +1,17 @@
+/* 雨滴基础样式 */
+.raindrop {
+    position: absolute;
+    border-radius: 2px;
+    pointer-events: none;
+}
+
+/* 溅落动画移除 */
+
+@keyframes fall {
+    0% {
+        transform: translateY(-50px);
+    }
+    100% {
+        transform: translateY(100vh);
+    }
+}

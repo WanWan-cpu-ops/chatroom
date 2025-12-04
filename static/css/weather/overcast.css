@@ -1,0 +1,36 @@
+/* 阴天 */
+.overcast-cloud {
+    position: absolute;
+    width: 120px;
+    height: 50px;
+    background: rgba(128,128,128,0.8);
+    border-radius: 25px;
+    animation: cloudMove linear infinite;
+}
+
+.overcast-cloud::before, .overcast-cloud::after {
+    content: '';
+    position: absolute;
+    background: rgba(128,128,128,0.8);
+    border-radius: 50%;
+}
+
+.overcast-cloud::before {
+    width: 60px;
+    height: 60px;
+    top: -30px;
+    left: 15px;
+}
+
+.overcast-cloud::after {
+    width: 70px;
+    height: 70px;
+    top: -35px;
+    left: 40px;
+}
+
+/* 云朵移动动画 */
+@keyframes cloudMove {
+    from { transform: translateX(-150px); }
+    to { transform: translateX(100vw); }
+}

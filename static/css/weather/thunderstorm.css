@@ -1,0 +1,14 @@
+/* 雷阵雨 - 闪电 */
+.lightning {
+    position: absolute;
+    width: 2px;
+    height: 100px;
+    background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,1), rgba(255,255,255,0));
+    transform-origin: top center;
+    animation: lightningFlash 0.1s ease-in-out 0s 3;
+}
+
+@keyframes lightningFlash {
+    0%, 100% { opacity: 0; }
+    50% { opacity: 1; }
+}
